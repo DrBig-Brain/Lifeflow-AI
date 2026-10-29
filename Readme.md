@@ -30,36 +30,40 @@ Getting started
 
 Prerequisites
 - Python 3.10+
-- Node.js 16+ and npm or yarn
-- An LLM API key (set as environment variables; see Notes)
+- Node.js 20.19+ and npm
+- Docker Compose (for the included local MongoDB service)
+- A Groq API key (the current agents read it from `XAI_API_KEY`)
 
-Backend (API)
-1. Create and activate a virtual environment:
+Backend and database
+1. Copy the local environment template and start MongoDB:
+
+```bash
+cp .env.example .env
+docker compose up -d mongodb
+```
+
+Add your Groq API key to `.env` as `XAI_API_KEY` before using `/decide`. If you already have a MongoDB instance, set `MONGODB_CONNECT_URI` in `.env` to its connection URI instead; set `MONGODB_TLS=true` if that server requires TLS.
+
+2. Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 ```
 
-2. Install Python dependencies:
+3. Install Python dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set required environment variables (example):
-
-```bash
-export XAI_API_KEY="your-api-key-here"
-```
-
 4. Run the API server (development):
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-The API will be available at `http://127.0.0.1:8000` by default.
+The API will be available at `http://127.0.0.1:8000` and its interactive docs at `http://127.0.0.1:8000/docs`.
 
 API endpoints
 - `GET /` — health/status ping
@@ -75,13 +79,15 @@ Example request
 ```
 
 Frontend (client)
-1. Install and run the client:
+In a second terminal, install and run the client:
 
 ```bash
 cd client
 npm install
 npm run dev
 ```
+
+Open the local URL printed by Vite (normally `http://localhost:5173`). Requests are proxied to the local API by `vite.config.js`; set `VITE_API_URL` only when using a different API origin.
 
 Testing
 -------
@@ -93,7 +99,8 @@ pytest -q
 
 Notes & configuration
 ---------------------
-- The agents call external LLM services; set API keys (for example, `XAI_API_KEY`) in your environment before running.
+- The agents call Groq's API using `XAI_API_KEY` (retained for compatibility) and default to `openai/gpt-oss-120b`. Set `GROQ_MODEL` in `.env` to select another model available to your Groq account.
+- MongoDB data is stored in the `lifeflowai-mongodb` Docker volume. Stop the local database with `docker compose down`; `docker compose down -v` also deletes its data.
 - `app/models.py` defines `DecideRequest` and `DecideResponse` used by the API.
 - Ensure `requirements.txt` pins the dependencies you need for reproducible installs.
 

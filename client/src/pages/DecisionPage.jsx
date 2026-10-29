@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL || "";
 
 export default function DecisionPage({ token, username, onLogout }) {
   const [question, setQuestion] = useState("");
@@ -24,7 +24,11 @@ export default function DecisionPage({ token, username, onLogout }) {
       );
       setResult(response.data);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError(
+        import.meta.env.DEV
+          ? err.response?.data?.detail || err.message || "Something went wrong. Please try again."
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }

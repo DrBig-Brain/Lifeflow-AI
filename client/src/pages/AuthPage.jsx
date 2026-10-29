@@ -1,7 +1,7 @@
 import {useState} from "react";
 import axios from "axios";
 
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL || "";
 
 export default function AuthPage({onLogin}){
     const [isLogin, setIsLogin] = useState(true);
